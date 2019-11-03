@@ -402,6 +402,7 @@ def single_song(song_id):
                            song=song,
                            songmetadata=songmetadata)
 
+
 #####################################################
 #   Query 6
 #   Individual Podcast
@@ -420,17 +421,28 @@ def single_podcast(podcast_id):
     # Fill in the Function below with to do all data handling for a podcast     #
     #############################################################################
 
-    page['title'] = '' # Add the title
+    page['title'] = 'Podcast' # Add the title
 
+
+    podcast = None
+    podcast = database.get_podcast(podcast_id)
     # Set up some variables to manage the returns from the database fucntions
-    
+    podcastep = None
+    podcastep = database.get_all_podcasteps_for_podcast(podcast_id)
     # Once retrieved, do some data integrity checks on the data
+    if podcast == None:
+        podcast = []
 
+    if podcastep == None:
+        podcastep = []
     # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
     return render_template('singleitems/podcast.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           podcast=podcast,
+                           podcastep=podcastep
+                           )
 
 #####################################################
 #   Query 7
@@ -450,17 +462,20 @@ def single_podcastep(media_id):
     # Fill in the Function below with to do all data handling for a podcast ep  #
     #############################################################################
 
-    page['title'] = '' # Add the title
+    page['title'] = 'Podcastep' # Add the title
 
     # Set up some variables to manage the returns from the database fucntions
-    
+    podcastep = None
+    podcastep = database.get_podcastep(podcastep_id)
     # Once retrieved, do some data integrity checks on the data
-
+    if podcastep == None:
+        podcastep = []
     # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
     return render_template('singleitems/podcastep.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           podcastep=podcastep)
 
 
 #####################################################
@@ -672,11 +687,19 @@ def search_movies():
     # a movie                                                                   #
     #############################################################################
 
-    page['title'] = '' # Add the title
-
+    page['title'] = 'Movie Search' # Add the title
+    movies = None
     if request.method == 'POST':
+        movies = database.find_matchingmovies(request.form['searchterm'])
         # Set up some variables to manage the post returns
-
+        if movies == None or movies == []:
+            movies = []
+            page['bar'] = False
+            flash("No matching movie found, please try again")
+        else:
+            page['bar'] = True
+            flash('Found '+str(len(movies))+' results!')
+            session['logged_in'] = True
         # Once retrieved, do some data integrity checks on the data
 
         # Once verified, send the appropriate data to 
@@ -685,13 +708,100 @@ def search_movies():
         return render_template('searchitems/search_movies.html',
                     session=session,
                     page=page,
-                    user=user_details)
+                    user=user_details,
+                    movies = movies)
     else:
         # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
         return render_template('searchitems/search_movies.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           movies = movies)
+
+
+
+#   Search Podcast
+@app.route('/search/podcast', methods=['POST','GET'])
+def search_podcasts():
+    """
+    Search all the movies in your media server
+    """
+    # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    #########
+    # TODO  #  
+    #########
+
+    #############################################################################
+    # Fill in the Function below with to do all data handling for searching for #
+    # a movie                                                                   #
+    #############################################################################
+
+    page['title'] = 'Podcast Search' # Add the title
+    podcasts = None
+    if request.method == 'POST':
+        movies = database.find_matchingpodcasts(request.form['searchterm'])
+        # Set up some variables to manage the post returns
+    if podcasts == None or podcasts == []:
+        podcasts = []
+        page['bar'] = False
+        flash("No matching podcasts found, please try again")
+    else:
+        page['bar'] = True
+        flash('Found '+str(len(podcasts))+' results!')
+        session['logged_in'] = True
+        # Once retrieved, do some data integrity checks on the data
+
+        # Once verified, send the appropriate data to 
+
+        # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES or Go elsewhere
+    return render_template('searchitems/search_podcasts.html',
+                session=session,
+                page=page,
+                user=user_details,
+                podcasts = podcasts)
+    
+
+
+
+
+@app.route('/search/song', methods=['POST','GET'])
+def search_songs():
+    """
+    Search all the tvshows in your media server
+    """
+
+    # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    page['title'] = 'Song Search'
+
+    # Get a list of matching tv shows from the database
+    songs = None
+    if(request.method == 'POST'):
+
+        songs = database.find_matchingsongs(request.form['searchterm'])
+
+    # Data integrity checks
+    if songs == None or songs == []:
+        songs = []
+        page['bar'] = False
+        flash("No matching songs found, please try again")
+    else:
+        page['bar'] = True
+        flash('Found '+str(len(songs))+' results!')
+        session['logged_in'] = True
+
+    return render_template('searchitems/search_songs.html',
+                           session=session,
+                           page=page,
+                           user=user_details,
+                           songs=songs)
+
+
 
 
 #####################################################
@@ -795,22 +905,175 @@ def add_song():
     # Fill in the Function below with to do all data handling for adding a song #
     #############################################################################
 
-    page['title'] = '' # Add the title
+    page['title'] = 'Song creation' # Add the title
+
+    songs = None
+    print("request form is:")
+    newdict = {}
+    print(request.form)
 
     if request.method == 'POST':
         # Set up some variables to manage the post returns
+        if ('song_title' not in request.form):
+            newdict['song_title'] = 'Empty Song Title'
+        else:
+            newdict['song_title'] = request.form['song_title']
+            print("We have a value: ",newdict['song_title'])
+
+        if ('song_length' not in request.form):
+            newdict['song_length'] = '0'
+        else:
+            newdict['song_length'] = request.form['song_length']
+            print("We have a value: ",newdict['song_length'])
+
+        if ('description' not in request.form):
+            newdict['description'] = 'Empty description field'
+        else:
+            newdict['description'] = request.form['description']
+            print("We have a value: ",newdict['description'])
+
+        if ('storage_location' not in request.form):
+            newdict['storage_location'] = 'Empty storage location'
+        else:
+            newdict['storage_location'] = request.form['storage_location']
+            print("We have a value: ",newdict['storage_location'])
+
+        if ('song_genre' not in request.form):
+            newdict['song_genre'] = 'pop'
+        else:
+            newdict['song_genre'] = request.form['song_genre']
+            print("We have a value: ",newdict['song_genre'])
+
+        if ('artist_id' not in request.form):
+            newdict['artist_id'] = '0'
+        else:
+            newdict['artist_id'] = request.form['artist_id']
+            print("We have a value: ",newdict['artist_id'])
+        
+
+        if ('artwork' not in request.form):
+            newdict['artwork'] = 'https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png'
+        else:
+            newdict['artwork'] = request.form['artwork']
+            print("We have a value: ",newdict['artwork'])
+        
+        
+        
+
+        songs = database.add_song_to_db(newdict['song_title'],newdict['song_length'],newdict['description'],newdict['storage_location'],newdict['song_genre'],newdict['artist_id'])
+
+        max_song_id = database.get_last_song()[0]['song_id']
+
+        print(songs)
+        if songs is not None:
+        	max_song_id = songs[0]
+
+        return single_song(max_song_id)
+
+
+    else:    
 
         # Once retrieved, do some data integrity checks on the data
 
         # Once verified, send the appropriate data to the database for insertion
 
         # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
-        return render_template('singleitems/song.html',
-                           session=session,
-                           page=page,
-                           user=user_details)
-    else:
+        
+    
         return render_template('createitems/createsong.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details
+                           )
+
+
+
+
+
+
+
+@app.route('/add/artist', methods=['POST','GET'])
+def add_artist():
+    """
+    Add a new Song
+    """
+    # # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    #########
+    # TODO  #  
+    #########
+
+    #############################################################################
+    # Fill in the Function below with to do all data handling for adding a song #
+    #############################################################################
+
+    page['title'] = 'Artist creation' # Add the title
+
+    artists = None
+    print("request form is:")
+    newdict = {}
+    print(request.form)
+
+    if request.method == 'POST':
+        # Set up some variables to manage the post returns
+        if ('artist_name' not in request.form):
+            newdict['artist_name'] = 'Empty Artist Name'
+        else:
+            newdict['artist_name'] = request.form['artist_name']
+            print("We have a value: ",newdict['artist_name'])
+
+
+        if ('description' not in request.form):
+            newdict['description'] = 'Empty description field'
+        else:
+            newdict['description'] = request.form['description']
+            print("We have a value: ",newdict['description'])
+
+        if ('storage_location' not in request.form):
+            newdict['storage_location'] = 'Empty storage location'
+        else:
+            newdict['storage_location'] = request.form['storage_location']
+            print("We have a value: ",newdict['storage_location'])
+
+        if ('artist_genre' not in request.form):
+            newdict['artist_genre'] = 'unknown'
+        else:
+            newdict['artist_genre'] = request.form['artist_genre']
+            print("We have a value: ",newdict['artist_genre'])
+
+        if ('artwork' not in request.form):
+            newdict['artwork'] = 'https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png'
+        else:
+            newdict['artwork'] = request.form['artwork']
+            print("We have a value: ",newdict['artwork'])
+        
+        
+        
+
+        artists = database.add_artist_to_db(newdict['artist_name'],newdict['description'],newdict['storage_location'],newdict['artist_genre'])
+
+        max_artist_id = database.get_last_artist()[0]['artist_id']
+
+        print(artists)
+        if artists is not None:
+        	max_artist_id = artists[0]
+
+        return single_artist(max_artist_id)
+
+
+    else:    
+
+        # Once retrieved, do some data integrity checks on the data
+
+        # Once verified, send the appropriate data to the database for insertion
+
+        # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
+        
+    
+        return render_template('createitems/createartist.html',
+                           session=session,
+                           page=page,
+                           user=user_details
+                           )
