@@ -737,7 +737,7 @@ def get_podcast(podcast_id):
         # including all metadata associated with it                                 #
         #############################################################################
         sql = """
-            SELECT *
+            SELECT podcast_id,podcast_title,podcast_uri,podcast_last_updated,md_value
             FROM mediaserver.podcast natural join mediaserver.podcastmetadata natural join
             mediaserver.metadata natural join mediaserver.metadatatype
 
@@ -785,10 +785,11 @@ def get_all_podcasteps_for_podcast(podcast_id):
         #############################################################################
 
         sql = """
-            SELECT media_id, podcast_episode_title, podcast_episode_uri,podcast_episode_published_date,podcast_episode_length
-            FROM mediaserver.podcast natural join mediaserver.podcastepisode
-            WHERE podcast_id = %s
-            order by podcast_episode_published_date
+            SELECT  e.media_id, e.podcast_episode_title,podcast_episode_uri,podcast_episode_published_date,podcast_episode_length
+            FROM mediaserver.podcast p inner join mediaserver.podcastepisode e on ( p.podcast_id = e.podcast_id)
+            WHERE p.podcast_id = %s
+            
+            order by podcast_episode_published_date DESC
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -832,7 +833,7 @@ def get_podcastep(podcastep_id):
             SELECT media_id,podcast_episode_title,podcast_episode_uri,podcast_episode_published_date,podcast_episode_length,md_type_name,md_value
             FROM mediaserver.podcastepisode natural join mediaserver.podcastmetadata natural join
                 mediaserver.metadata natural join mediaserver.metadatatype
-            WHERE podcastep_id = %s
+            WHERE media_id =  %s
         """
 
         r = dictfetchall(cur,sql,(podcastep_id,))
@@ -991,7 +992,15 @@ def get_album_genres(album_id):
 
 #####################################################
 #   Query (4 a,b)
-#   Get one tvshow
+#   Get one 
+
+
+
+
+
+
+
+
 #####################################################
 def get_tvshow(tvshow_id):
     """
@@ -1189,55 +1198,6 @@ def find_matchingtvshows(searchterm):
     conn.close()                    # Close the connection to the db
     return None
 
-#####################################################
-#   Find all matching artists
-#####################################################
-def find_matchingartists(searchterm):
-    """
-    Get all the matching Artists in your media server
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-            SELECT
-                a.*, anew.count as count
-            FROM
-                mediaserver.artist a,
-
-                (
-
-                SELECT
-                    a.artist_id, a.artist_name, count(amd.md_id) as count
-                FROM
-                    mediaserver.artist a left outer join mediaserver.artistmetadata amd on (a.artist_id=amd.artist_id)
-                GROUP BY a.artist_id, a.artist_name
-
-                ) anew
-
-            WHERE a.artist_id = anew.artist_id and lower(a.artist_name) ~ lower(%s)
-            ORDER BY a.artist_id;
-
-            """
-
-        r = dictfetchall(cur,sql,(searchterm,))
-        print("return val is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error getting All Artists:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()                    # Close the connection to the db
-    return None
-
 
 #####################################################
 #   Query (10)
@@ -1328,47 +1288,6 @@ def find_matchingpodcasts(searchterm):
     conn.close()                    # Close the connection to the db
     return None
 
-
-#####################################################
-#   Find all matching albums
-#####################################################
-def find_matchingalbums(searchterm):
-    """
-    Get all the matching Albums in your media server
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-            SELECT
-                t.*, tnew.count as count
-            from
-                mediaserver.album t,
-                (select
-                    t1.album_id, count(te1.song_id) as count
-                from
-                    mediaserver.album t1 left outer join mediaserver.album_songs te1 on (t1.album_id=te1.album_id)
-                    group by t1.album_id) tnew
-            where t.album_id = tnew.album_id and lower(album_title) ~ lower(%s)
-            order by t.album_id """
-
-        r = dictfetchall(cur,sql,(searchterm,))
-        print("return val is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error getting All Albums:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()                    # Close the connection to the db
-    return None
 
 
 
