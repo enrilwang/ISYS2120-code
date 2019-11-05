@@ -720,7 +720,6 @@ def search_movies():
 
 
 
-
 #####################################################
 #   Search Podcast
 #####################################################
@@ -729,6 +728,7 @@ def search_podcasts():
     """
     Search all the podcasts in your media server
     """
+
 
     # Check if the user is logged in, if not: back to login.
     if('logged_in' not in session or not session['logged_in']):
@@ -743,6 +743,7 @@ def search_podcasts():
         podcasts = database.find_matchingpodcasts(request.form['searchterm'])
 
     # Data integrity checks
+
     if podcasts == None or podcasts == []:
         podcasts = []
         page['bar'] = False
@@ -757,6 +758,7 @@ def search_podcasts():
                            page=page,
                            user=user_details,
                            podcasts=podcasts)
+
     
 
 
@@ -883,6 +885,7 @@ def search_albums():
                            page=page,
                            user=user_details,
                            albums=albums)
+
 
 
 

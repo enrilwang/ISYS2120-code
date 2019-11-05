@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+"""
+MediaServer Database module.
+Contains all interactions between the webapp and the queries to the database.
+"""
+
 import configparser
 import json
 import sys
@@ -687,6 +693,7 @@ def get_song_metadata(song_id):
                                     INNER JOIN mediaserver.metadata md on (mimd.md_id = md.md_id) OR (almd.md_id = md.md_id)
                                     INNER JOIN mediaserver.metadatatype mdt on (md.md_type_id = mdt.md_type_id)
             WHERE s.song_id = %s;
+
         """
         #Description only exists from 260(song_id)
 
@@ -740,6 +747,7 @@ def get_podcast(podcast_id):
             SELECT podcast_id,podcast_title,podcast_uri,podcast_last_updated,md_value
             FROM mediaserver.podcast natural join mediaserver.podcastmetadata natural join
             mediaserver.metadata natural join mediaserver.metadatatype
+
 
             WHERE podcast_id = %s
 
@@ -877,6 +885,7 @@ def get_album(album_id):
             SELECT album_title,md_type_name,md_value
             FROM mediaserver.album natural join mediaserver.albummetadata natural join mediaserver.metadata
                 natural join mediaserver.metadatatype
+
             where album_id = %s
         """
 
@@ -919,9 +928,11 @@ def get_album_songs(album_id):
         #############################################################################
         sql = """
          SELECT song_id,song_title,artist_name as "artists"
+
             FROM mediaserver.album natural join mediaserver.album_songs natural join mediaserver.song s
                 natural join mediaserver.song_artists inner join mediaserver.artist on (performing_artist_id = artist_id)
             WHERE album_id = %s
+
 
             order by track_num
         """
@@ -964,6 +975,7 @@ def get_album_genres(album_id):
         # genres in an album (based on all the genres of the songs in that album)   #
         #############################################################################
         sql = """
+
              SELECT distinct md_value as "songgenres"
             from mediaserver.Album a
             inner join mediaserver.Album_Songs using (album_id) 
@@ -1137,7 +1149,9 @@ def get_movie(movie_id):
     try:
         # Try executing the SQL and get from the database
         sql = """SELECT *
+
         from mediaserver.movie m left outer join
+
             (mediaserver.mediaitemmetadata natural join mediaserver.metadata natural join mediaserver.MetaDataType) mmd
         on (m.movie_id=mmd.media_id)
         where m.movie_id=%s;"""
@@ -1172,6 +1186,7 @@ def find_matchingtvshows(searchterm):
     try:
         # Try executing the SQL and get from the database
         sql = """
+
             SELECT
                 t.*, tnew.count as count
             from
@@ -1181,6 +1196,7 @@ def find_matchingtvshows(searchterm):
                 from
                     mediaserver.tvshow t1 left outer join mediaserver.TVEpisode te1 on (t1.tvshow_id=te1.tvshow_id)
                     group by t1.tvshow_id) tnew
+
             where t.tvshow_id = tnew.tvshow_id and lower(tvshow_title) ~ lower(%s)
             order by t.tvshow_id;"""
 
@@ -1222,6 +1238,7 @@ def find_matchingmovies(searchterm):
         # that match a given search term                                            #
         #############################################################################
         sql = """
+
             SELECT
                 t.*, tnew.count as count
             from
@@ -1233,6 +1250,7 @@ def find_matchingmovies(searchterm):
                     group by t1.movie_id) tnew
             where t.movie_id = tnew.movie_id and lower(movie_title) ~ lower(%s)
             order by t.movie_id;"""
+
 
 
         r = dictfetchall(cur,sql,(searchterm,))
@@ -1262,6 +1280,7 @@ def find_matchingpodcasts(searchterm):
     try:
         # Try executing the SQL and get from the database
         sql = """
+
             SELECT
                 t.*, tnew.count as count
             from
@@ -1271,6 +1290,7 @@ def find_matchingpodcasts(searchterm):
                 from
                     mediaserver.podcast t1 left outer join mediaserver.mediaitemmetadata te1 on (t1.podcast_id=te1.media_id)
                     group by t1.podcast_id) tnew
+
             where t.podcast_id = tnew.podcast_id and lower(podcast_title) ~ lower(%s)
             order by t.podcast_id;"""
 
@@ -1283,6 +1303,7 @@ def find_matchingpodcasts(searchterm):
     except:
         # If there were any errors, return a NULL row printing an error to the debug
         print("Unexpected error getting All Podcast:", sys.exc_info()[0])
+
         raise
     cur.close()                     # Close the cursor
     conn.close()                    # Close the connection to the db
@@ -1332,10 +1353,12 @@ def find_matchingsongs(searchterm):
     except:
         # If there were any errors, return a NULL row printing an error to the debug
         print("Unexpected error getting All Songs:", sys.exc_info()[0])
+
         raise
     cur.close()                     # Close the cursor
     conn.close()                    # Close the connection to the db
     return None
+
 
 
 
