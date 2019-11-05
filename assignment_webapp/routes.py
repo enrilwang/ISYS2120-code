@@ -720,30 +720,30 @@ def search_movies():
 
 
 
+#####################################################
 #   Search Podcast
+#####################################################
 @app.route('/search/podcast', methods=['POST','GET'])
 def search_podcasts():
     """
-    Search all the movies in your media server
+    Search all the podcasts in your media server
     """
+
+
     # Check if the user is logged in, if not: back to login.
     if('logged_in' not in session or not session['logged_in']):
         return redirect(url_for('login'))
 
-    #########
-    # TODO  #  
-    #########
+    page['title'] = 'Podcast Search'
 
-    #############################################################################
-    # Fill in the Function below with to do all data handling for searching for #
-    # a movie                                                                   #
-    #############################################################################
-
-    page['title'] = 'Podcast Search' # Add the title
+    # Get a list of matching tv shows from the database
     podcasts = None
-    if request.method == 'POST':
-        movies = database.find_matchingpodcasts(request.form['searchterm'])
-        # Set up some variables to manage the post returns
+    if(request.method == 'POST'):
+
+        podcasts = database.find_matchingpodcasts(request.form['searchterm'])
+
+    # Data integrity checks
+
     if podcasts == None or podcasts == []:
         podcasts = []
         page['bar'] = False
@@ -752,16 +752,13 @@ def search_podcasts():
         page['bar'] = True
         flash('Found '+str(len(podcasts))+' results!')
         session['logged_in'] = True
-        # Once retrieved, do some data integrity checks on the data
 
-        # Once verified, send the appropriate data to 
-
-        # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES or Go elsewhere
     return render_template('searchitems/search_podcasts.html',
-                session=session,
-                page=page,
-                user=user_details,
-                podcasts = podcasts)
+                           session=session,
+                           page=page,
+                           user=user_details,
+                           podcasts=podcasts)
+
     
 
 
@@ -800,6 +797,94 @@ def search_songs():
                            page=page,
                            user=user_details,
                            songs=songs)
+
+#search Artists
+@app.route('/search/artist', methods=['POST','GET'])
+def search_artists():
+    """
+    Search all the artists in your media server
+    """
+    # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    #########
+    # TODO  #
+    #########
+
+    #############################################################################
+    # Fill in the Function below with to do all data handling for searching for #
+    # a movie                                                                   #
+    #############################################################################
+
+    page['title'] = 'Artist Search' # Add the title
+    artists = None
+    if request.method == 'POST':
+        artists = database.find_matchingartists(request.form['searchterm'])
+        # Set up some variables to manage the post returns
+        if artists == None or artists == []:
+            artists = []
+            page['bar'] = False
+            flash("No matching artist found, please try again")
+        else:
+            page['bar'] = True
+            flash('Found '+str(len(artists))+' results!')
+            session['logged_in'] = True
+        # Once retrieved, do some data integrity checks on the data
+
+        # Once verified, send the appropriate data to
+
+        # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES or Go elsewhere
+        return render_template('searchitems/search_artists.html',
+                    session=session,
+                    page=page,
+                    user=user_details,
+                    artists=artists)
+    else:
+        # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
+        return render_template('searchitems/search_artists.html',
+                           session=session,
+                           page=page,
+                           user=user_details,
+                           artists=artists)
+
+
+#####################################################
+#   Search Album
+#####################################################
+@app.route('/search/album', methods=['POST','GET'])
+def search_albums():
+    """
+    Search all the albums in your media server
+    """
+
+    # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    page['title'] = 'Album Search'
+
+    # Get a list of matching tv shows from the database
+    albums = None
+    if(request.method == 'POST'):
+
+        albums = database.find_matchingalbums(request.form['searchterm'])
+
+    # Data integrity checks
+    if albums == None or albums == []:
+        albums = []
+        page['bar'] = False
+        flash("No matching albums found, please try again")
+    else:
+        page['bar'] = True
+        flash('Found '+str(len(albums))+' results!')
+        session['logged_in'] = True
+
+    return render_template('searchitems/search_albums.html',
+                           session=session,
+                           page=page,
+                           user=user_details,
+                           albums=albums)
 
 
 

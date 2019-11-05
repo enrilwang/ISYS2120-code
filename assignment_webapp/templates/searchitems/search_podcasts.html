@@ -15,14 +15,14 @@
                         <tr>
                             <td>Podcast ID</td>
                             <td>Podcast Name</td>
-                            <td>Podcast Uri</td>
+                            <td>Podcast Url</td>
                             <td>Podcast Last Updated</td>
                             <td>Podcast Episode Count</td>
                         </tr>
                     </thead>
                     <tbody>
                         {% for instance in podcasts %}
-                            <!-- Each row is a link to each individual tvshow page -->
+                            <!-- Each row is a link to each individual podcast page -->
                             <tr class="clickable-tr" data-href="{{ url_for('single_podcast', podcast_id=instance.podcast_id)}}">
                                 <td style="text-align: center">{{ instance.podcast_id }}</td>
                                 <td>{{instance.podcast_title}}</td>
