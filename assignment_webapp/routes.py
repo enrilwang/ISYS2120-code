@@ -466,7 +466,7 @@ def single_podcastep(media_id):
 
     # Set up some variables to manage the returns from the database fucntions
     podcastep = None
-    podcastep = database.get_podcastep(podcastep_id)
+    podcastep = database.get_podcastep(media_id)
     # Once retrieved, do some data integrity checks on the data
     if podcastep == None:
         podcastep = []
